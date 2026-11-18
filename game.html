@@ -1,0 +1,770 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARADOX LIVE - GUESS THE SONG</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    background:#101015;
+    color:white;
+    font-family:Arial,"Noto Sans TC",sans-serif;
+}
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 5%;
+    border-bottom:1px solid #333;
+}
+.logo{
+    font-size:22px;
+    font-weight:900;
+    letter-spacing:2px;
+}
+.logo span{color:#ed354d}
+.back{
+    color:#aaa;
+    text-decoration:none;
+    font-size:13px;
+}
+.back:hover{color:white}
+main{
+    max-width:700px;
+    margin:40px auto;
+    padding:15px;
+}
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+.tag{
+    color:#ff5268;
+    border:1px solid #ed354d;
+    padding:7px 13px;
+    font-size:12px;
+    letter-spacing:2px;
+}
+.score{color:#aaa;font-size:13px}
+.progress{
+    height:5px;
+    background:#333;
+    border-radius:5px;
+    overflow:hidden;
+    margin-bottom:30px;
+}
+.bar{
+    height:100%;
+    background:#ed354d;
+    width:0;
+    transition:.3s;
+}
+.question{text-align:center;margin-bottom:20px}
+.question small{color:#ed354d;letter-spacing:3px}
+.question h1{font-size:25px;margin:12px 0}
+.lyric{
+    background:#202029;
+    border-left:4px solid #ed354d;
+    border-radius:5px;
+    padding:40px 20px;
+    text-align:center;
+    margin:25px 0;
+    min-height:160px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:19px;
+    line-height:2;
+    white-space:pre-line;
+    overflow-wrap:anywhere;
+}
+.hint{text-align:center;color:#777;font-size:12px}
+.options{
+    display:grid;
+    gap:12px;
+    margin-top:25px;
+}
+.option{
+    padding:17px;
+    background:#22222c;
+    border:1px solid #41414c;
+    border-radius:5px;
+    color:white;
+    text-align:left;
+    font-size:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+.option:hover:not(:disabled){
+    border-color:#ed354d;
+    background:#30232a;
+}
+.option.correct{
+    background:#214b38;
+    border-color:#43bb80;
+}
+.option.wrong{
+    background:#592630;
+    border-color:#ef5264;
+}
+.option:disabled{cursor:default}
+.feedback{
+    display:none;
+    padding:17px;
+    margin-top:20px;
+    background:#22222c;
+    border-radius:5px;
+    line-height:1.8;
+}
+.feedback.show{display:block}
+.next{
+    display:none;
+    width:100%;
+    padding:15px;
+    margin-top:15px;
+    border:0;
+    border-radius:5px;
+    background:#ed354d;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.next:hover{background:#ff5268}
+.next.show{display:block}
+.result{
+    text-align:center;
+    display:none;
+    padding:30px 10px;
+}
+.result.show{display:block}
+.number{
+    font-size:60px;
+    color:#ed354d;
+    font-weight:bold;
+}
+.result button{
+    background:#ed354d;
+    color:white;
+    border:0;
+    padding:14px 25px;
+    cursor:pointer;
+    border-radius:5px;
+    margin:10px;
+}
+.result button:hover{background:#ff5268}
+.error{
+    color:#ff8190;
+    text-align:center;
+    line-height:1.8;
+}
+footer{
+    text-align:center;
+    color:#555;
+    padding:30px;
+    font-size:11px;
+}
+@media(max-width:600px){
+    main{margin:20px auto}
+    .lyric{font-size:17px;padding:30px 15px}
+    .question h1{font-size:21px}
+    header{padding:18px 4%}
+    .logo{font-size:18px}
+    .back{font-size:11px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">PARADOX <span>LIVE</span></div>
+    <a class="back" href="index.html">← BACK TO HOME</a>
+</header>
+
+<main>
+
+    <div id="gameArea">
+
+        <div class="top">
+            <div class="tag" id="teamTag">LYRIC QUIZ</div>
+            <div class="score">
+                SCORE: <span id="score">0</span>
+            </div>
+        </div>
+
+        <div class="progress">
+            <div class="bar" id="bar"></div>
+        </div>
+
+        <div class="question">
+            <small id="number">QUESTION 01 / 10</small>
+            <h1>GUESS THE SONG</h1>
+            <p style="color:#aaa;font-size:13px">
+                這段歌詞出自哪一首歌曲？
+            </p>
+        </div>
+
+        <div class="lyric" id="lyric">題目載入中...</div>
+
+        <div class="hint">CHOOSE THE CORRECT SONG</div>
+
+        <div class="options" id="options"></div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <button class="next" id="nextBtn">
+            NEXT QUESTION →
+        </button>
+
+    </div>
+
+    <div class="result" id="resultArea">
+        <div style="color:#ed354d;letter-spacing:4px">
+            CHALLENGE COMPLETE
+        </div>
+        <h1>YOUR RESULT</h1>
+        <div class="number" id="finalScore">0</div>
+        <p id="resultText"></p>
+        <button onclick="location.reload()">PLAY AGAIN</button>
+        <button onclick="location.href='index.html'">HOME</button>
+    </div>
+
+</main>
+
+<footer>
+    PARADOX LIVE LYRIC QUIZ · UNOFFICIAL FAN-MADE PROJECT
+</footer>
+
+<script>
+
+// ========================================
+// 1. 讀取首頁設定
+// ========================================
+
+const params = new URLSearchParams(location.search);
+
+const selectedTeams = (params.get("teams") || "bae")
+    .split(",")
+    .map(team => team.trim())
+    .filter(Boolean);
+
+const requestedCount = Math.max(
+    1,
+    Math.min(12, Number(params.get("count")) || 5)
+);
+
+
+// ========================================
+// 2. JSON 檔案對照表
+// ========================================
+
+const teamFiles = {
+    bae: "bae.json",
+    tcw: "tcw.json",
+    cozmez: "cozmez.json",
+    akanyatsura: "akanyatsura.json",
+    buraikan: "buraikan.json",
+    visty: "visty.json",
+    amprule: "amprule.json",
+    "1nm8": "1nm8.json",
+    gokuluck: "gokuluck.json"
+};
+
+// ========================================
+// 3. 遊戲變數
+// ========================================
+
+let allSongs = [];
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+
+// ========================================
+// 4. 隨機排序
+// ========================================
+
+function shuffle(array) {
+    const result = [...array];
+
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [result[i], result[j]] = [
+            result[j],
+            result[i]
+        ];
+    }
+
+    return result;
+}
+
+
+// ========================================
+// 5. 載入 JSON 題庫
+// ========================================
+
+
+async function loadQuestions() {
+
+    try {
+
+        console.log("開始載入題庫");
+        console.log("選擇隊伍：", selectedTeams);
+
+        if (selectedTeams.length === 0) {
+            throw new Error("沒有選擇任何隊伍");
+        }
+
+        // 讀取所有隊伍 JSON
+
+        const responses = await Promise.all(
+
+            selectedTeams.map(async team => {
+
+                const normalizedTeam = team.trim().toLowerCase();
+
+                if (!teamFiles[normalizedTeam]) {
+                    throw new Error("未知隊伍：" + normalizedTeam);
+                }
+
+                const url = "./data/" + teamFiles[normalizedTeam];
+
+                console.log("正在讀取：", url);
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(
+                        "讀取失敗：" + url +
+                        "，HTTP 狀態：" + response.status
+                    );
+                }
+
+                const data = await response.json();
+
+                console.log("JSON 載入成功：", data);
+
+                // 檢查 JSON 格式
+
+                if (
+                    !data ||
+                    typeof data.groupName !== "string" ||
+                    !Array.isArray(data.songs)
+                ) {
+                    throw new Error(
+                        normalizedTeam + " 的 JSON 格式錯誤"
+                    );
+                }
+
+                // 統一小寫後比對
+
+                if (
+                    data.groupName.trim().toLowerCase() !== normalizedTeam
+                ) {
+                    throw new Error(
+                        "隊伍名稱不一致：" +
+                        normalizedTeam + " / " +
+                        data.groupName
+                    );
+                }
+
+                return {
+                    ...data,
+                    groupName: normalizedTeam
+                };
+
+            })
+
+        );
+
+
+        // 合併歌曲
+
+        allSongs = responses.flatMap(data => {
+
+            return data.songs
+
+                .filter(song =>
+                    song &&
+                    typeof song.title === "string" &&
+                    song.title.trim() !== ""
+                )
+
+                .map((song, index) => ({
+                    ...song,
+                    team: data.groupName,
+                    id: data.groupName + "_" + index
+                }));
+
+        });
+
+        console.log("歌曲總數：", allSongs.length);
+
+        if (allSongs.length === 0) {
+            throw new Error("目前沒有可用歌曲");
+        }
+
+
+        // 建立歌詞題目池
+
+        let pool = [];
+
+        allSongs.forEach(song => {
+
+            if (!Array.isArray(song.lyrics)) {
+                return;
+            }
+
+            song.lyrics.forEach((lyric, index) => {
+
+                if (
+                    typeof lyric !== "string" ||
+                    !lyric.trim()
+                ) {
+                    return;
+                }
+
+                pool.push({
+                    id: song.id + "_" + index,
+                    songId: song.id,
+                    team: song.team,
+                    title: song.title,
+                    lyric: lyric.trim()
+                });
+
+            });
+
+        });
+
+
+        console.log("歌詞題目總數：", pool.length);
+
+        if (pool.length === 0) {
+            throw new Error("目前沒有可用的歌詞題目");
+        }
+
+
+        // 隨機排序
+
+        pool = shuffle(pool);
+
+
+        // 每首歌曲只出現一次
+
+        const usedSongs = new Set();
+
+        const uniquePool = pool.filter(question => {
+
+            if (usedSongs.has(question.songId)) {
+                return false;
+            }
+
+            usedSongs.add(question.songId);
+
+            return true;
+
+        });
+
+
+        // 抽取指定題數
+
+        questions = uniquePool.slice(0, requestedCount);
+
+        console.log("實際題數：", questions.length);
+
+        if (questions.length === 0) {
+            throw new Error("目前沒有可用的歌詞題目");
+        }
+
+
+        // 題庫不足提醒
+
+        if (questions.length < requestedCount) {
+            alert(
+                "題庫目前只有 " +
+                questions.length +
+                " 題，將以現有題數開始。"
+            );
+        }
+
+
+        // 更新隊伍標籤
+
+        document.getElementById("teamTag").textContent =
+            selectedTeams.join(" / ");
+
+
+        // 顯示第一題
+
+        console.log("開始顯示題目");
+
+        showQuestion();
+
+
+    } catch (error) {
+
+        console.error("載入題目失敗：", error);
+
+        document.getElementById("lyric").textContent =
+            "題庫載入失敗\n" +
+            error.message +
+            "\n\n請確認 data 資料夾及 JSON 檔案。";
+
+        document.getElementById("lyric").classList.add("error");
+
+        document.getElementById("options").innerHTML = "";
+
+        document.getElementById("number").textContent =
+            "LOAD ERROR";
+
+        document.getElementById("bar").style.width = "0";
+
+    }
+
+}
+
+
+// ========================================
+// 6. 產生選項
+// ========================================
+
+function generateOptions(question) {
+
+    const correct = allSongs.find(song =>
+        song.id === question.songId
+    );
+
+    if (!correct) {
+        throw new Error("找不到正確答案");
+    }
+
+    const wrongSongs = allSongs.filter(song =>
+        song.id !== question.songId
+    );
+
+    const wrong = shuffle(wrongSongs).slice(0, 3);
+
+    const choices = [
+        {
+            id: correct.id,
+            title: correct.title
+        },
+
+        ...wrong.map(song => ({
+            id: song.id,
+            title: song.title
+        }))
+    ];
+
+    return shuffle(choices);
+}
+
+
+// ========================================
+// 7. 顯示題目
+// ========================================
+
+function showQuestion() {
+
+    answered = false;
+
+    const q = questions[current];
+
+    document.getElementById("number").textContent =
+        "QUESTION " +
+        String(current + 1).padStart(2, "0") +
+        " / " +
+        questions.length;
+
+    document.getElementById("lyric").textContent =
+        q.lyric;
+
+    document.getElementById("score").textContent =
+        score * 10;
+
+    document.getElementById("bar").style.width =
+        (current / questions.length * 100) + "%";
+
+    document.getElementById("feedback").className =
+        "feedback";
+
+    document.getElementById("nextBtn").className =
+        "next";
+
+    const options = document.getElementById("options");
+
+    options.innerHTML = "";
+
+    const choices = generateOptions(q);
+
+    choices.forEach((song, index) => {
+
+        const button = document.createElement("button");
+
+        button.className = "option";
+
+        button.textContent =
+            String.fromCharCode(65 + index) +
+            ". " +
+            song.title;
+
+        button.dataset.songId = song.id;
+
+        button.onclick = () => {
+            checkAnswer(song.id, button);
+        };
+
+        options.appendChild(button);
+
+    });
+
+}
+
+
+// ========================================
+// 8. 判斷答案
+// ========================================
+
+function checkAnswer(songId, button) {
+
+    if (answered) return;
+
+    answered = true;
+
+    const q = questions[current];
+
+    const correct = songId === q.songId;
+
+    if (correct) {
+        score++;
+    }
+
+    document.querySelectorAll(".option").forEach(option => {
+        option.disabled = true;
+    });
+
+    const feedback = document.getElementById("feedback");
+
+    if (correct) {
+
+        button.classList.add("correct");
+
+        feedback.textContent =
+            "✓ CORRECT！答對了！";
+
+    } else {
+
+        button.classList.add("wrong");
+
+        document.querySelectorAll(".option").forEach(option => {
+
+            if (option.dataset.songId === q.songId) {
+                option.classList.add("correct");
+            }
+
+        });
+
+        feedback.textContent =
+            "✕ WRONG ANSWER！正確答案：" + q.title;
+
+    }
+
+    feedback.className = "feedback show";
+
+    document.getElementById("score").textContent =
+        score * 10;
+
+    const next = document.getElementById("nextBtn");
+
+    next.textContent =
+        current === questions.length - 1
+            ? "SEE RESULTS →"
+            : "NEXT QUESTION →";
+
+    next.className = "next show";
+
+}
+
+
+// ========================================
+// 9. 下一題
+// ========================================
+
+function nextQuestion() {
+
+    if (!answered) return;
+
+    current++;
+
+    if (current >= questions.length) {
+        showResult();
+    } else {
+        showQuestion();
+    }
+
+}
+
+
+// ========================================
+// 10. 成績結算
+// ========================================
+
+function showResult() {
+
+    document.getElementById("gameArea").style.display =
+        "none";
+
+    const result = document.getElementById("resultArea");
+
+    result.className = "result show";
+
+    document.getElementById("finalScore").textContent =
+        score * 10 + " PTS";
+
+    const percentage = Math.round(
+        score / questions.length * 100
+    );
+
+    document.getElementById("resultText").textContent =
+        "答對 " +
+        score +
+        " / " +
+        questions.length +
+        " 題，正確率 " +
+        percentage +
+        "%";
+
+    document.getElementById("bar").style.width = "100%";
+
+}
+
+
+// ========================================
+// 11. 按鈕事件
+// ========================================
+
+document.getElementById("nextBtn").addEventListener(
+    "click",
+    nextQuestion
+);
+
+
+// ========================================
+// 12. 開始遊戲
+// ========================================
+
+loadQuestions();
+
+</script>
+
+</body>
+</html>
